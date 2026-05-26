@@ -1,11 +1,11 @@
 bplascope.duckdns.org {
-    handle_path /api/* {
-        reverse_proxy localhost:8000
-    }
+    reverse_proxy /api/* backend:8000
+    reverse_proxy /mini/* mini_app:5173
+    reverse_proxy frontend:3000
+}
 
-    handle_path /mini/* {
-        reverse_proxy localhost:5173
-    }
-
-    reverse_proxy localhost:3000
+:80 {
+    reverse_proxy /api/* backend:8000
+    reverse_proxy /mini/* mini_app:5173
+    reverse_proxy frontend:3000
 }

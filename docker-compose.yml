@@ -1,0 +1,41 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: bplascope-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/dronemon.db
+    volumes:
+      - dronemon_data:/app/backend/data
+    restart: unless-stopped
+    healthcheck:
+      test: python -c "import httpx; httpx.get('http://localhost:8000/api/health')"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bplascope-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - mini_app
+    restart: unless-stopped
+
+  mini_app:
+    build:
+      context: ./mini_app
+      dockerfile: Dockerfile
+    container_name: bplascope-miniapp
+    restart: unless-stopped
+
+volumes:
+  dronemon_data:

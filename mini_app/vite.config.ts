@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/mini/',
   server: {
+    allowedHosts: ["bplascope.duckdns.org"],
     port: 5173,
     proxy: {
       '/api': 'http://localhost:8000',

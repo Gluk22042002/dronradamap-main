@@ -192,6 +192,28 @@ async def scrape_once(session: AsyncSession) -> int:
                             if date_str else datetime.utcnow()
                         )
 
+                        is_recent = (datetime.utcnow() - created_at).total_seconds() < 7200
+                        sent_to_tg = True
+                        if is_recent:
+                            try:
+                                loop = asyncio.get_running_loop()
+                                if loop.is_closed():
+                                    raise RuntimeError("event loop is closed")
+                                loop.create_task(_notify_tg({
+                                    "bpla_id": bpla_id,
+                                    "event_type": event_type,
+                                    "region": region,
+                                    "lat": lat,
+                                    "lng": lng,
+                                    "confidence_score": 0.75,
+                                    "created_at": created_at.isoformat() if isinstance(created_at, datetime) else str(created_at),
+                                    "title": title,
+                                }))
+                            except Exception:
+                                pass
+                        else:
+                            sent_to_tg = False
+
                         event_obj = Event(
                             title=title,
                             description=description,
@@ -204,27 +226,10 @@ async def scrape_once(session: AsyncSession) -> int:
                             source_url=post.get("link", ""),
                             bpla_id=bpla_id,
                             created_at=created_at,
-                            sent_to_tg=True,
+                            sent_to_tg=sent_to_tg,
                         )
                         session.add(event_obj)
                         inserted += 1
-
-                        try:
-                            loop = asyncio.get_running_loop()
-                            if loop.is_closed():
-                                raise RuntimeError("event loop is closed")
-                            loop.create_task(_notify_tg({
-                                "bpla_id": bpla_id,
-                                "event_type": event_type,
-                                "region": region,
-                                "lat": lat,
-                                "lng": lng,
-                                "confidence_score": 0.75,
-                                "created_at": created_at.isoformat() if isinstance(created_at, datetime) else str(created_at),
-                                "title": title,
-                            }))
-                        except Exception:
-                            pass
 
                     if page % 5 == 0 or page == total_pages:
                         await session.commit()

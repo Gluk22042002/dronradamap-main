@@ -1,0 +1,16 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+.env
+venv/
+node_modules/
+dist/
+*.db
+*.md
+parser/
+start.ps1
+bplascope-nginx.conf
+frontend/
+mini_app/
+backend/venv/
